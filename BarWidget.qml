@@ -142,13 +142,16 @@ BarWidget {
 
         Image {
           id: iconMask
+          property bool usingFallback: false
           anchors.fill: parent
           visible: false
-          source: Qt.resolvedUrl("assets/omalive.svg")
+          source: Qt.resolvedUrl(usingFallback
+            ? "assets/omalive-fallback.svg" : "assets/omalive.svg")
           fillMode: Image.PreserveAspectFit
           sourceSize.width: width * 2
           sourceSize.height: height * 2
           cache: true
+          onStatusChanged: if (status === Image.Error && !usingFallback) usingFallback = true
         }
 
         MultiEffect {
