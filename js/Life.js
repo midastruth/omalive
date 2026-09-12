@@ -91,6 +91,7 @@ function defaultProfile() {
     maxAge: 0,
     dailyDisplay: true,
     showRemaining: true,
+    showBarDays: true,
     viewMode: "summary",
     gridUnit: "weeks",
     lastShownDate: ""
@@ -114,6 +115,7 @@ function normalizeProfile(value) {
     maxAge: initialized ? maxAge : fallback.maxAge,
     dailyDisplay: source.dailyDisplay === undefined ? true : source.dailyDisplay === true,
     showRemaining: source.showRemaining === undefined ? true : source.showRemaining === true,
+    showBarDays: source.showBarDays === undefined ? true : source.showBarDays === true,
     viewMode: source.viewMode === "grid" ? "grid" : "summary",
     gridUnit: ["days", "weeks", "months", "years"].indexOf(source.gridUnit) >= 0
       ? source.gridUnit : "weeks",

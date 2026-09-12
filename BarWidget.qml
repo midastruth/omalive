@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
@@ -14,7 +15,7 @@ BarWidget {
   readonly property var lifeService: bar && bar.shell
     ? bar.shell.serviceFor(moduleName) : null
   readonly property bool opened: panelLoader.item ? panelLoader.item.opened === true : false
-  readonly property real openPanelIndicatorWidth: button.labelWidth
+  readonly property real openPanelIndicatorWidth: button.contentWidth
   readonly property real openPanelIndicatorHeight: Math.max(Style.space(10), Math.round(Style.bar.iconSlot * 0.55))
   readonly property bool popoutSwitchClosing: panelLoader.item
     ? panelLoader.item.popoutSwitchClosing === true : false
@@ -113,15 +114,63 @@ BarWidget {
     id: button
     anchors.fill: parent
     bar: root.bar
-    text: root.lifeService && root.lifeService.initialized
+    readonly property string displayText: root.lifeService && root.lifeService.initialized
       ? String(root.lifeService.livedDays) + "d"
       : "Omalive"
+    readonly property real iconSize: Math.round(Style.bar.iconCanvas * 0.8)
+    readonly property real contentWidth: contentRow.implicitWidth
+    text: ""
+    labelVisible: false
+    hasVisualContent: true
+    fixedWidth: vertical ? -1 : contentWidth + scaledHorizontalMargin * 2
+    fixedHeight: vertical ? Style.bar.iconSlot : -1
     tooltipText: {
       if (!root.lifeService || !root.lifeService.initialized) return "Set up Omalive"
       return root.lifeService.progressText + " · " + root.lifeService.name
     }
     horizontalMargin: 8.75
     verticalPadding: 8.75
+
+    Row {
+      id: contentRow
+      anchors.centerIn: parent
+      spacing: Style.space(5)
+
+      Item {
+        width: button.iconSize
+        height: button.iconSize
+
+        Image {
+          id: iconMask
+          anchors.fill: parent
+          visible: false
+          source: Qt.resolvedUrl("assets/omalive.svg")
+          fillMode: Image.PreserveAspectFit
+          sourceSize.width: width * 2
+          sourceSize.height: height * 2
+          cache: true
+        }
+
+        MultiEffect {
+          anchors.fill: iconMask
+          source: iconMask
+          colorization: 1
+          colorizationColor: button.active && button.useActiveColor
+            ? button.activeColor : button.foreground
+        }
+      }
+
+      Text {
+        visible: !button.vertical && (!root.lifeService || root.lifeService.showBarDays)
+        anchors.verticalCenter: parent.verticalCenter
+        text: button.displayText
+        color: button.active && button.useActiveColor
+          ? button.activeColor : button.foreground
+        font.family: button.fontFamily
+        font.pixelSize: button.fontSize
+        renderType: Text.NativeRendering
+      }
+    }
 
     onPressed: function(mouseButton) {
       if (mouseButton === Qt.LeftButton) root.togglePanel()

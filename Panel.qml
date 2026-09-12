@@ -466,6 +466,29 @@ Panel {
 
             Item {
               width: parent.width
+              height: barDaysLabel.implicitHeight + Style.space(8)
+
+              Text {
+                id: barDaysLabel
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: "Show day count in bar"
+                color: root.contentForeground
+                font.family: root.contentFontFamily
+                font.pixelSize: Style.font.body
+              }
+
+              ToggleSwitch {
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                checked: !!root.service && root.service.showBarDays
+                foreground: root.contentForeground
+                onToggled: if (root.service) root.service.setShowBarDays(!checked)
+              }
+            }
+
+            Item {
+              width: parent.width
               height: dailyLabel.implicitHeight + Style.space(8)
 
               Text {
