@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "io.github.midastruth.omalive",
+  "name": "Omalive",
+  "version": "0.1.0",
+  "author": "Midas Truth",
+  "license": "MIT",
+  "description": "A native Omarchy life-scale visualization: one random, fixed horizon and a quiet reminder of where today sits within it.",
+  "kinds": [
+    "bar-widget",
+    "overlay",
+    "service"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml",
+    "overlay": "Overlay.qml",
+    "service": "Service.qml"
+  },
+  "barWidget": {
+    "displayName": "Omalive",
+    "description": "Days alive and life-scale progress, with a detailed panel and daily overlay.",
+    "category": "Time",
+    "allowMultiple": false,
+    "defaultSection": "center"
+  }
+}
