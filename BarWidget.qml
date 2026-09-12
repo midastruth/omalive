@@ -114,9 +114,10 @@ BarWidget {
     id: button
     anchors.fill: parent
     bar: root.bar
+    readonly property int displayedDays: root.lifeService && root.lifeService.barShowsRemaining
+      ? root.lifeService.remainingDays : (root.lifeService ? root.lifeService.livedDays : 0)
     readonly property string displayText: root.lifeService && root.lifeService.initialized
-      ? String(root.lifeService.livedDays) + "d"
-      : "Omalive"
+      ? String(displayedDays) : "Omalive"
     readonly property real iconSize: Math.round(Style.bar.iconCanvas * 0.8)
     readonly property real contentWidth: contentRow.implicitWidth
     text: ""
@@ -126,7 +127,10 @@ BarWidget {
     fixedHeight: vertical ? Style.bar.iconSlot : -1
     tooltipText: {
       if (!root.lifeService || !root.lifeService.initialized) return "Set up Omalive"
-      return root.lifeService.progressText + " · " + root.lifeService.name
+      var count = root.lifeService.barShowsRemaining
+        ? root.lifeService.remainingDays + " days remaining"
+        : root.lifeService.livedDays + " days alive"
+      return count + " · " + root.lifeService.progressText + " · " + root.lifeService.name
     }
     horizontalMargin: 8.75
     verticalPadding: 8.75

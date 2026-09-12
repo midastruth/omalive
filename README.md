@@ -6,14 +6,14 @@ Omalive does not predict how long you will live. On first run it chooses one ran
 
 ## What v0.2 includes
 
-- Native Omarchy bar widget with Omalive icon and optional live day count (`11344d`)
+- Native Omarchy bar widget with Omalive icon and optional live day count (`11344`)
 - Click-to-open Quickshell panel
 - First-run name and birth-date overlay
 - Random, persistent Life Scale from 95–120 years
 - One daily overlay, at most once per local calendar day
 - Switchable summary and life-grid views
 - Life-grid units for exact days, weeks, months, or years, always fitted into one complete view
-- Settings for identity, view style, bar day-count visibility, daily display, and remaining-day visibility
+- Settings for identity, view style, bar day-count visibility and mode, daily display, and remaining-day visibility
 - Full reset as the only way to generate a new Life Scale
 - Graceful beyond-scale display instead of negative remaining days
 - Theme colors, fonts, spacing, borders, and controls from Omarchy Shell

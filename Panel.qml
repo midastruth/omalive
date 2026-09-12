@@ -489,6 +489,29 @@ Panel {
 
             Item {
               width: parent.width
+              height: barRemainingLabel.implicitHeight + Style.space(8)
+
+              Text {
+                id: barRemainingLabel
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: "Bar displays remaining days"
+                color: root.contentForeground
+                font.family: root.contentFontFamily
+                font.pixelSize: Style.font.body
+              }
+
+              ToggleSwitch {
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                checked: !!root.service && root.service.barShowsRemaining
+                foreground: root.contentForeground
+                onToggled: if (root.service) root.service.setBarShowsRemaining(!checked)
+              }
+            }
+
+            Item {
+              width: parent.width
               height: dailyLabel.implicitHeight + Style.space(8)
 
               Text {
@@ -518,7 +541,7 @@ Panel {
                 id: remainingLabel
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Show remaining days"
+                text: "Show remaining days in panel"
                 color: root.contentForeground
                 font.family: root.contentFontFamily
                 font.pixelSize: Style.font.body

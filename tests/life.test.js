@@ -52,6 +52,7 @@ const normalized = life.normalizeProfile({
   dailyDisplay: false,
   showRemaining: false,
   showBarDays: false,
+  barShowsRemaining: true,
   lastShownDate: "2026-09-12"
 })
 assert.equal(normalized.initialized, true)
@@ -59,6 +60,7 @@ assert.equal(normalized.maxAge, 107)
 assert.equal(normalized.dailyDisplay, false)
 assert.equal(normalized.showRemaining, false)
 assert.equal(normalized.showBarDays, false)
+assert.equal(normalized.barShowsRemaining, true)
 assert.equal(normalized.viewMode, "summary")
 assert.equal(normalized.gridUnit, "weeks")
 
@@ -86,5 +88,6 @@ const gridProfile = life.normalizeProfile({
 assert.equal(gridProfile.viewMode, "grid")
 assert.equal(gridProfile.gridUnit, "months")
 assert.equal(gridProfile.showBarDays, true)
+assert.equal(gridProfile.barShowsRemaining, false)
 
 console.log("Life.js: all tests passed")

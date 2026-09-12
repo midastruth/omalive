@@ -92,6 +92,7 @@ function defaultProfile() {
     dailyDisplay: true,
     showRemaining: true,
     showBarDays: true,
+    barShowsRemaining: false,
     viewMode: "summary",
     gridUnit: "weeks",
     lastShownDate: ""
@@ -116,6 +117,7 @@ function normalizeProfile(value) {
     dailyDisplay: source.dailyDisplay === undefined ? true : source.dailyDisplay === true,
     showRemaining: source.showRemaining === undefined ? true : source.showRemaining === true,
     showBarDays: source.showBarDays === undefined ? true : source.showBarDays === true,
+    barShowsRemaining: source.barShowsRemaining === true,
     viewMode: source.viewMode === "grid" ? "grid" : "summary",
     gridUnit: ["days", "weeks", "months", "years"].indexOf(source.gridUnit) >= 0
       ? source.gridUnit : "weeks",

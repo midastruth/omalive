@@ -31,6 +31,7 @@ Item {
   readonly property bool dailyDisplay: profile.dailyDisplay !== false
   readonly property bool showRemaining: profile.showRemaining !== false
   readonly property bool showBarDays: profile.showBarDays !== false
+  readonly property bool barShowsRemaining: profile.barShowsRemaining === true
   readonly property string viewMode: profile.viewMode === "grid" ? "grid" : "summary"
   readonly property string gridUnit: String(profile.gridUnit || "weeks")
   readonly property string lastShownDate: String(profile.lastShownDate || "")
@@ -121,6 +122,10 @@ Item {
 
   function setShowBarDays(value) {
     mutate(function(draft) { draft.showBarDays = value === true })
+  }
+
+  function setBarShowsRemaining(value) {
+    mutate(function(draft) { draft.barShowsRemaining = value === true })
   }
 
   function setViewMode(value) {
