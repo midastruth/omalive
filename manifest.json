@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.midastruth.omalive",
   "name": "Omalive",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Midas Truth",
   "license": "MIT",
   "description": "A native Omarchy life-scale visualization: one random, fixed horizon and a quiet reminder of where today sits within it.",
@@ -18,7 +18,7 @@
   },
   "barWidget": {
     "displayName": "Omalive",
-    "description": "Days alive and life-scale progress, with a detailed panel and daily overlay.",
+    "description": "Summary or life-grid progress in days, weeks, months, or years.",
     "category": "Time",
     "allowMultiple": false,
     "defaultSection": "center"

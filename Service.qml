@@ -30,6 +30,8 @@ Item {
   readonly property int maxAge: initialized ? Number(profile.maxAge) : 0
   readonly property bool dailyDisplay: profile.dailyDisplay !== false
   readonly property bool showRemaining: profile.showRemaining !== false
+  readonly property string viewMode: profile.viewMode === "grid" ? "grid" : "summary"
+  readonly property string gridUnit: String(profile.gridUnit || "weeks")
   readonly property string lastShownDate: String(profile.lastShownDate || "")
   readonly property string today: Life.todayKey(now)
   readonly property var life: Life.metrics(birthday, maxAge, now)
@@ -42,6 +44,9 @@ Item {
   readonly property real visualProgress: life.visualProgress
   readonly property bool beyondScale: life.beyond
   readonly property string progressText: Life.formatPercent(progress)
+  readonly property var unitGrid: Life.unitMetrics(birthday, maxAge, now, gridUnit)
+  readonly property int gridTotal: unitGrid.total
+  readonly property int gridElapsed: unitGrid.elapsed
 
   onShellChanged: if (shell && ready) {
     lastEvaluatedDate = ""
@@ -111,6 +116,17 @@ Item {
 
   function setShowRemaining(value) {
     mutate(function(draft) { draft.showRemaining = value === true })
+  }
+
+  function setViewMode(value) {
+    var selected = value === "grid" ? "grid" : "summary"
+    mutate(function(draft) { draft.viewMode = selected })
+  }
+
+  function setGridUnit(value) {
+    var allowed = ["days", "weeks", "months", "years"]
+    var selected = allowed.indexOf(value) >= 0 ? value : "weeks"
+    mutate(function(draft) { draft.gridUnit = selected })
   }
 
   function reset() {

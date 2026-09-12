@@ -49,6 +49,14 @@ function addYearsClamped(parts, years) {
   return { year: year, month: parts.month, day: day }
 }
 
+function addMonthsClamped(parts, months) {
+  var monthIndex = parts.month - 1 + months
+  var year = parts.year + Math.floor(monthIndex / 12)
+  var month = ((monthIndex % 12) + 12) % 12 + 1
+  var day = Math.min(parts.day, daysInMonth(year, month))
+  return { year: year, month: month, day: day }
+}
+
 function normalizeName(value) {
   return String(value || "").replace(/\s+/g, " ").trim().substring(0, 60)
 }
@@ -83,6 +91,8 @@ function defaultProfile() {
     maxAge: 0,
     dailyDisplay: true,
     showRemaining: true,
+    viewMode: "summary",
+    gridUnit: "weeks",
     lastShownDate: ""
   }
 }
@@ -104,6 +114,9 @@ function normalizeProfile(value) {
     maxAge: initialized ? maxAge : fallback.maxAge,
     dailyDisplay: source.dailyDisplay === undefined ? true : source.dailyDisplay === true,
     showRemaining: source.showRemaining === undefined ? true : source.showRemaining === true,
+    viewMode: source.viewMode === "grid" ? "grid" : "summary",
+    gridUnit: ["days", "weeks", "months", "years"].indexOf(source.gridUnit) >= 0
+      ? source.gridUnit : "weeks",
     lastShownDate: parseIsoDate(source.lastShownDate) ? String(source.lastShownDate) : ""
   }
 }
@@ -140,6 +153,40 @@ function metrics(birthday, maxAge, today) {
     progress: progress,
     visualProgress: Math.max(0, Math.min(1, progress)),
     beyond: difference < 0
+  }
+}
+
+function unitMetrics(birthday, maxAge, today, unit) {
+  var born = parseIsoDate(birthday)
+  var current = parseIsoDate(todayKey(today))
+  var age = Math.floor(Number(maxAge))
+  var selected = ["days", "weeks", "months", "years"].indexOf(unit) >= 0 ? unit : "weeks"
+  if (!born || !current || !isFinite(age) || age <= 0)
+    return { unit: selected, total: 0, elapsed: 0 }
+
+  var dayMetrics = metrics(birthday, age, today)
+  var total = 0
+  var elapsed = 0
+  if (selected === "days") {
+    total = dayMetrics.totalDays
+    elapsed = dayMetrics.livedDays
+  } else if (selected === "weeks") {
+    total = Math.ceil(dayMetrics.totalDays / 7)
+    elapsed = Math.floor(dayMetrics.livedDays / 7)
+  } else if (selected === "months") {
+    total = age * 12
+    elapsed = (current.year - born.year) * 12 + current.month - born.month
+    if (civilDay(current) < civilDay(addMonthsClamped(born, elapsed))) elapsed--
+  } else {
+    total = age
+    elapsed = current.year - born.year
+    if (civilDay(current) < civilDay(addYearsClamped(born, elapsed))) elapsed--
+  }
+
+  return {
+    unit: selected,
+    total: Math.max(0, total),
+    elapsed: Math.max(0, Math.min(total, elapsed))
   }
 }
 

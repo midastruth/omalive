@@ -24,7 +24,10 @@ Panel {
   function open() {
     if (!service || !service.initialized) return
     controller.show()
-    Qt.callLater(function() { keyCatcher.forceActiveFocus() })
+    Qt.callLater(function() {
+      keyCatcher.forceActiveFocus()
+      if (service.viewMode === "grid") panelLifeGrid.revealPresent()
+    })
   }
 
   function close() {
@@ -51,6 +54,13 @@ Panel {
 
   function saveIdentity() {
     if (service && service.updateIdentity(nameField.text, birthdayField.text)) closeSettings()
+  }
+
+  function unitLabel(unit) {
+    if (unit === "days") return "days"
+    if (unit === "months") return "months"
+    if (unit === "years") return "years"
+    return "weeks"
   }
 
   function requestReset() {
@@ -97,11 +107,13 @@ Panel {
         Item {
           id: contentRoot
           width: parent.width
-          height: root.settingsOpen ? settingsColumn.implicitHeight : summaryColumn.implicitHeight
+          height: root.settingsOpen ? settingsColumn.implicitHeight
+            : root.service && root.service.viewMode === "grid"
+              ? gridColumn.implicitHeight : summaryColumn.implicitHeight
 
           Column {
             id: summaryColumn
-            visible: !root.settingsOpen
+            visible: !root.settingsOpen && (!root.service || root.service.viewMode !== "grid")
             width: parent.width
             spacing: Style.space(16)
 
@@ -127,6 +139,7 @@ Panel {
                 anchors.verticalCenter: parent.verticalCenter
                 iconText: "󰒓"
                 tooltipText: "Omalive settings"
+                focusable: true
                 foreground: root.contentForeground
                 fontFamily: root.contentFontFamily
                 onClicked: root.openSettings()
@@ -225,6 +238,92 @@ Panel {
           }
 
           Column {
+            id: gridColumn
+            visible: !root.settingsOpen && !!root.service && root.service.viewMode === "grid"
+            width: parent.width
+            spacing: Style.space(14)
+
+            Item {
+              width: parent.width
+              height: Math.max(gridTitle.implicitHeight, gridSettingsButton.implicitHeight)
+
+              Text {
+                id: gridTitle
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: "LIFE GRID"
+                color: root.contentForeground
+                font.family: root.contentFontFamily
+                font.pixelSize: Style.font.body
+                font.bold: true
+                font.letterSpacing: 1.5
+              }
+
+              Button {
+                id: gridSettingsButton
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                iconText: "󰒓"
+                tooltipText: "Omalive settings"
+                focusable: true
+                foreground: root.contentForeground
+                fontFamily: root.contentFontFamily
+                onClicked: root.openSettings()
+              }
+            }
+
+            Text {
+              width: parent.width
+              horizontalAlignment: Text.AlignHCenter
+              text: root.service
+                ? Life.formatNumber(root.service.gridElapsed) + " / "
+                  + Life.formatNumber(root.service.gridTotal) + " "
+                  + root.unitLabel(root.service.gridUnit)
+                : ""
+              color: root.contentForeground
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.body
+              font.bold: true
+            }
+
+            LifeGrid {
+              id: panelLifeGrid
+              width: parent.width
+              height: Style.space(310)
+              totalUnits: root.service ? root.service.gridTotal : 0
+              elapsedUnits: root.service ? root.service.gridElapsed : 0
+              foreground: root.contentForeground
+              fontFamily: root.contentFontFamily
+            }
+
+            Row {
+              anchors.horizontalCenter: parent.horizontalCenter
+              spacing: Style.space(16)
+
+              Text {
+                text: "■ lived"
+                color: root.contentForeground
+                font.family: root.contentFontFamily
+                font.pixelSize: Style.font.caption
+              }
+
+              Text {
+                text: "■ now"
+                color: Color.accent
+                font.family: root.contentFontFamily
+                font.pixelSize: Style.font.caption
+              }
+
+              Text {
+                text: "□ remaining"
+                color: Qt.darker(root.contentForeground, 1.45)
+                font.family: root.contentFontFamily
+                font.pixelSize: Style.font.caption
+              }
+            }
+          }
+
+          Column {
             id: settingsColumn
             visible: root.settingsOpen
             width: parent.width
@@ -312,6 +411,57 @@ Panel {
               rows: root.service ? [
                 { label: "Life scale", value: root.service.maxAge + " years", emphasis: true }
               ] : []
+            }
+
+            Text {
+              text: "View"
+              color: Qt.darker(root.contentForeground, 1.45)
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.bodySmall
+            }
+
+            ButtonGroup {
+              options: [
+                { value: "summary", label: "Summary" },
+                { value: "grid", label: "Life grid" }
+              ]
+              value: root.service ? root.service.viewMode : "summary"
+              foreground: root.contentForeground
+              fontFamily: root.contentFontFamily
+              fontSize: Style.font.bodySmall
+              onChanged: function(value) { if (root.service) root.service.setViewMode(value) }
+            }
+
+            Text {
+              text: "Grid unit"
+              color: Qt.darker(root.contentForeground, 1.45)
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.bodySmall
+            }
+
+            ButtonGroup {
+              options: [
+                { value: "days", label: "Days" },
+                { value: "weeks", label: "Weeks" },
+                { value: "months", label: "Months" },
+                { value: "years", label: "Years" }
+              ]
+              value: root.service ? root.service.gridUnit : "weeks"
+              foreground: root.contentForeground
+              fontFamily: root.contentFontFamily
+              fontSize: Style.font.caption
+              onChanged: function(value) { if (root.service) root.service.setGridUnit(value) }
+            }
+
+            Text {
+              width: parent.width
+              wrapMode: Text.WordWrap
+              text: root.service
+                ? Life.formatNumber(root.service.gridTotal) + " cells at the selected unit."
+                : ""
+              color: Qt.darker(root.contentForeground, 1.65)
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.caption
             }
 
             Item {

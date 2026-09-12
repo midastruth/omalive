@@ -57,5 +57,31 @@ assert.equal(normalized.initialized, true)
 assert.equal(normalized.maxAge, 107)
 assert.equal(normalized.dailyDisplay, false)
 assert.equal(normalized.showRemaining, false)
+assert.equal(normalized.viewMode, "summary")
+assert.equal(normalized.gridUnit, "weeks")
+
+const dayGrid = life.unitMetrics("1995-08-20", 107, new Date(2026, 8, 12, 12), "days")
+const weekGrid = life.unitMetrics("1995-08-20", 107, new Date(2026, 8, 12, 12), "weeks")
+const monthGrid = life.unitMetrics("1995-08-20", 107, new Date(2026, 8, 12, 12), "months")
+const yearGrid = life.unitMetrics("1995-08-20", 107, new Date(2026, 8, 12, 12), "years")
+assert.equal(dayGrid.total, life.metrics("1995-08-20", 107, new Date(2026, 8, 12, 12)).totalDays)
+assert.equal(weekGrid.total, Math.ceil(dayGrid.total / 7))
+assert.equal(monthGrid.total, 1284)
+assert.equal(monthGrid.elapsed, 372)
+assert.equal(yearGrid.total, 107)
+assert.equal(yearGrid.elapsed, 31)
+assert.equal(life.unitMetrics("2000-02-29", 107, new Date(2001, 1, 28, 12), "years").elapsed, 1)
+assert.equal(life.unitMetrics("2000-01-31", 107, new Date(2000, 1, 29, 12), "months").elapsed, 1)
+
+const gridProfile = life.normalizeProfile({
+  initialized: true,
+  name: "Midas",
+  birthday: "1995-08-20",
+  maxAge: 107,
+  viewMode: "grid",
+  gridUnit: "months"
+})
+assert.equal(gridProfile.viewMode, "grid")
+assert.equal(gridProfile.gridUnit, "months")
 
 console.log("Life.js: all tests passed")

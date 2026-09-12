@@ -41,11 +41,20 @@ Item {
     if (service) service.validationError = ""
     opened = true
     focusTimer.restart()
+    if (page === "daily" && service && service.viewMode === "grid")
+      Qt.callLater(function() { overlayLifeGrid.revealPresent() })
   }
 
   function close() {
     opened = false
     if (service) service.validationError = ""
+  }
+
+  function unitLabel(unit) {
+    if (unit === "days") return "days"
+    if (unit === "months") return "months"
+    if (unit === "years") return "years"
+    return "weeks"
   }
 
   function birthDate() {
@@ -319,7 +328,7 @@ Item {
         }
 
         Column {
-          visible: root.page === "daily"
+          visible: root.page === "daily" && (!root.service || root.service.viewMode !== "grid")
           width: parent.width
           spacing: Style.space(10)
 
@@ -376,6 +385,78 @@ Item {
             color: root.service && root.service.beyondScale ? Color.accent : Qt.darker(root.foreground, 1.35)
             font.family: root.fontFamily
             font.pixelSize: Style.font.body
+          }
+
+          Button {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: "Close"
+            foreground: root.foreground
+            fontFamily: root.fontFamily
+            onClicked: root.close()
+          }
+        }
+
+        Column {
+          visible: root.page === "daily" && !!root.service && root.service.viewMode === "grid"
+          width: parent.width
+          spacing: Style.space(12)
+
+          Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: root.service ? root.service.name : ""
+            color: Qt.darker(root.foreground, 1.35)
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.body
+          }
+
+          Text {
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            text: root.service
+              ? Life.formatNumber(root.service.gridElapsed) + " / "
+                + Life.formatNumber(root.service.gridTotal) + " "
+                + root.unitLabel(root.service.gridUnit)
+              : ""
+            color: root.foreground
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.body
+            font.bold: true
+          }
+
+          LifeGrid {
+            id: overlayLifeGrid
+            width: parent.width
+            height: Math.min(Style.space(360), window.height * 0.52)
+            totalUnits: root.service ? root.service.gridTotal : 0
+            elapsedUnits: root.service ? root.service.gridElapsed : 0
+            foreground: root.foreground
+            fontFamily: root.fontFamily
+          }
+
+          Row {
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: Style.space(16)
+
+            Text {
+              text: "■ lived"
+              color: root.foreground
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.caption
+            }
+
+            Text {
+              text: "■ now"
+              color: Color.accent
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.caption
+            }
+
+            Text {
+              text: "□ remaining"
+              color: Qt.darker(root.foreground, 1.45)
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.caption
+            }
           }
 
           Button {

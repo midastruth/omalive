@@ -4,14 +4,16 @@
 
 Omalive does not predict how long you will live. On first run it chooses one random, fixed **Life Scale** between 95 and 120 years, then shows where today sits within that scale.
 
-## What v0.1 includes
+## What v0.2 includes
 
 - Native Omarchy bar widget (`11344d`)
 - Click-to-open Quickshell panel
 - First-run name and birth-date overlay
 - Random, persistent Life Scale from 95–120 years
 - One daily overlay, at most once per local calendar day
-- Settings for identity, daily display, and remaining-day visibility
+- Switchable summary and life-grid views
+- Life-grid units for exact days, weeks, months, or years, always fitted into one complete view
+- Settings for identity, view style, daily display, and remaining-day visibility
 - Full reset as the only way to generate a new Life Scale
 - Graceful beyond-scale display instead of negative remaining days
 - Theme colors, fonts, spacing, borders, and controls from Omarchy Shell
@@ -51,7 +53,7 @@ lint_root=$(mktemp -d)
 ln -s /usr/share/omarchy/shell "$lint_root/qs"
 /usr/lib/qt6/bin/qmllint -I "$lint_root" \
   Service.qml BarWidget.qml Panel.qml Overlay.qml \
-  components/LifeProgress.qml components/LifeStats.qml
+  components/LifeProgress.qml components/LifeStats.qml components/LifeGrid.qml
 rm -rf "$lint_root"
 ```
 
@@ -96,7 +98,7 @@ Profile state is stored locally at:
 ~/.local/state/omalive/state.json
 ```
 
-It contains the name, birth date, fixed Life Scale, display preferences, and the last daily display date. Omalive makes no network requests.
+It contains the name, birth date, fixed Life Scale, selected view and grid unit, display preferences, and the last daily display date. Omalive makes no network requests.
 
 ## Life math
 
