@@ -90,4 +90,14 @@ assert.equal(gridProfile.gridUnit, "months")
 assert.equal(gridProfile.showBarDays, true)
 assert.equal(gridProfile.barShowsRemaining, false)
 
+const ringProfile = life.normalizeProfile({
+  initialized: true,
+  name: "Midas",
+  birthday: "1995-08-20",
+  maxAge: 107,
+  viewMode: "ring"
+})
+assert.equal(ringProfile.viewMode, "ring")
+assert.equal(life.normalizeProfile({ viewMode: "unknown" }).viewMode, "summary")
+
 console.log("Life.js: all tests passed")

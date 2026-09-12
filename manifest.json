@@ -18,7 +18,7 @@
   },
   "barWidget": {
     "displayName": "Omalive",
-    "description": "Summary or life-grid progress in days, weeks, months, or years.",
+    "description": "Summary, Life Ring, or life-grid progress in days, weeks, months, or years.",
     "category": "Time",
     "allowMultiple": false,
     "defaultSection": "center"

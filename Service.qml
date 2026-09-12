@@ -32,7 +32,8 @@ Item {
   readonly property bool showRemaining: profile.showRemaining !== false
   readonly property bool showBarDays: profile.showBarDays !== false
   readonly property bool barShowsRemaining: profile.barShowsRemaining === true
-  readonly property string viewMode: profile.viewMode === "grid" ? "grid" : "summary"
+  readonly property string viewMode: ["summary", "ring", "grid"].indexOf(profile.viewMode) >= 0
+    ? String(profile.viewMode) : "summary"
   readonly property string gridUnit: String(profile.gridUnit || "weeks")
   readonly property string lastShownDate: String(profile.lastShownDate || "")
   readonly property string today: Life.todayKey(now)
@@ -129,7 +130,7 @@ Item {
   }
 
   function setViewMode(value) {
-    var selected = value === "grid" ? "grid" : "summary"
+    var selected = ["summary", "ring", "grid"].indexOf(value) >= 0 ? value : "summary"
     mutate(function(draft) { draft.viewMode = selected })
   }
 

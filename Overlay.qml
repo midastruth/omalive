@@ -328,7 +328,7 @@ Item {
         }
 
         Column {
-          visible: root.page === "daily" && (!root.service || root.service.viewMode !== "grid")
+          visible: root.page === "daily" && (!root.service || root.service.viewMode === "summary")
           width: parent.width
           spacing: Style.space(10)
 
@@ -383,6 +383,67 @@ Item {
               return Life.formatNumber(root.service.remainingDays) + " days remain"
             }
             color: root.service && root.service.beyondScale ? Color.accent : Qt.darker(root.foreground, 1.35)
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.body
+          }
+
+          Button {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: "Close"
+            foreground: root.foreground
+            fontFamily: root.fontFamily
+            onClicked: root.close()
+          }
+        }
+
+        Column {
+          visible: root.page === "daily" && !!root.service && root.service.viewMode === "ring"
+          width: parent.width
+          spacing: Style.space(12)
+
+          Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: root.service ? root.service.name : ""
+            color: Qt.darker(root.foreground, 1.35)
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.body
+          }
+
+          LifeRing {
+            width: Math.min(parent.width, Style.space(240))
+            height: width
+            anchors.horizontalCenter: parent.horizontalCenter
+            progress: root.service ? root.service.visualProgress : 0
+            percentText: root.service ? root.service.progressText : "0.00%"
+            foreground: root.foreground
+            fontFamily: root.fontFamily
+          }
+
+          Text {
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            text: root.service
+              ? Life.formatNumber(root.service.livedDays) + " of "
+                + Life.formatNumber(root.service.totalDays) + " days lived"
+              : ""
+            color: root.foreground
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.body
+            font.bold: true
+          }
+
+          Text {
+            visible: !!root.service && (root.service.showRemaining || root.service.beyondScale)
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            text: {
+              if (!root.service) return ""
+              if (root.service.beyondScale)
+                return "+" + Life.formatNumber(root.service.beyondDays) + " days beyond your life scale"
+              return Life.formatNumber(root.service.remainingDays) + " days remain"
+            }
+            color: root.service && root.service.beyondScale
+              ? Color.accent : Qt.darker(root.foreground, 1.35)
             font.family: root.fontFamily
             font.pixelSize: Style.font.body
           }

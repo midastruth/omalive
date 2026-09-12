@@ -118,7 +118,8 @@ function normalizeProfile(value) {
     showRemaining: source.showRemaining === undefined ? true : source.showRemaining === true,
     showBarDays: source.showBarDays === undefined ? true : source.showBarDays === true,
     barShowsRemaining: source.barShowsRemaining === true,
-    viewMode: source.viewMode === "grid" ? "grid" : "summary",
+    viewMode: ["summary", "ring", "grid"].indexOf(source.viewMode) >= 0
+      ? source.viewMode : "summary",
     gridUnit: ["days", "weeks", "months", "years"].indexOf(source.gridUnit) >= 0
       ? source.gridUnit : "weeks",
     lastShownDate: parseIsoDate(source.lastShownDate) ? String(source.lastShownDate) : ""

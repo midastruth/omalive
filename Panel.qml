@@ -109,11 +109,13 @@ Panel {
           width: parent.width
           height: root.settingsOpen ? settingsColumn.implicitHeight
             : root.service && root.service.viewMode === "grid"
-              ? gridColumn.implicitHeight : summaryColumn.implicitHeight
+              ? gridColumn.implicitHeight
+              : root.service && root.service.viewMode === "ring"
+                ? ringColumn.implicitHeight : summaryColumn.implicitHeight
 
           Column {
             id: summaryColumn
-            visible: !root.settingsOpen && (!root.service || root.service.viewMode !== "grid")
+            visible: !root.settingsOpen && (!root.service || root.service.viewMode === "summary")
             width: parent.width
             spacing: Style.space(16)
 
@@ -232,6 +234,99 @@ Panel {
               horizontalAlignment: Text.AlignHCenter
               text: "A randomly generated scale — not a prediction of your lifespan."
               color: Qt.darker(root.contentForeground, 1.8)
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.caption
+            }
+          }
+
+          Column {
+            id: ringColumn
+            visible: !root.settingsOpen && !!root.service && root.service.viewMode === "ring"
+            width: parent.width
+            spacing: Style.space(14)
+
+            Item {
+              width: parent.width
+              height: Math.max(ringTitle.implicitHeight, ringSettingsButton.implicitHeight)
+
+              Text {
+                id: ringTitle
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: "LIFE RING"
+                color: root.contentForeground
+                font.family: root.contentFontFamily
+                font.pixelSize: Style.font.body
+                font.bold: true
+                font.letterSpacing: 1.5
+              }
+
+              Button {
+                id: ringSettingsButton
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                iconText: "󰒓"
+                tooltipText: "Omalive settings"
+                focusable: true
+                foreground: root.contentForeground
+                fontFamily: root.contentFontFamily
+                onClicked: root.openSettings()
+              }
+            }
+
+            Text {
+              anchors.horizontalCenter: parent.horizontalCenter
+              text: root.service ? root.service.name : ""
+              color: Qt.darker(root.contentForeground, 1.35)
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.body
+            }
+
+            LifeRing {
+              width: Math.min(parent.width, Style.space(230))
+              height: width
+              anchors.horizontalCenter: parent.horizontalCenter
+              progress: root.service ? root.service.visualProgress : 0
+              percentText: root.service ? root.service.progressText : "0.00%"
+              foreground: root.contentForeground
+              fontFamily: root.contentFontFamily
+            }
+
+            Text {
+              width: parent.width
+              horizontalAlignment: Text.AlignHCenter
+              text: root.service
+                ? Life.formatNumber(root.service.livedDays) + " of "
+                  + Life.formatNumber(root.service.totalDays) + " days lived"
+                : ""
+              color: root.contentForeground
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.body
+              font.bold: true
+            }
+
+            Text {
+              visible: !!root.service && (root.service.showRemaining || root.service.beyondScale)
+              width: parent.width
+              horizontalAlignment: Text.AlignHCenter
+              text: {
+                if (!root.service) return ""
+                if (root.service.beyondScale)
+                  return "+" + Life.formatNumber(root.service.beyondDays) + " days beyond your life scale"
+                return Life.formatNumber(root.service.remainingDays) + " days remaining"
+              }
+              color: root.service && root.service.beyondScale
+                ? Color.accent : Qt.darker(root.contentForeground, 1.3)
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.body
+            }
+
+            Text {
+              width: parent.width
+              wrapMode: Text.WordWrap
+              horizontalAlignment: Text.AlignHCenter
+              text: root.service ? "Life scale: " + root.service.maxAge + " years" : ""
+              color: Qt.darker(root.contentForeground, 1.65)
               font.family: root.contentFontFamily
               font.pixelSize: Style.font.caption
             }
@@ -423,6 +518,7 @@ Panel {
             ButtonGroup {
               options: [
                 { value: "summary", label: "Summary" },
+                { value: "ring", label: "Life ring" },
                 { value: "grid", label: "Life grid" }
               ]
               value: root.service ? root.service.viewMode : "summary"

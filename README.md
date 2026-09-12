@@ -8,6 +8,7 @@ Omalive turns your life into a visual scale. On first run it selects one random,
 
 - Native Omarchy bar widget with an optional elapsed- or remaining-day counter
 - Click-to-open summary panel with progress, dates, and life-scale statistics
+- Life Ring view with the elapsed percentage centered in a circular progress ring
 - Life-grid view in days, weeks, months, or years, fitted into one complete view
 - First-run setup and Life Scale reveal
 - Optional daily overlay, shown at most once per local calendar day
@@ -50,7 +51,7 @@ Use the settings button in the panel to configure:
 
 | Setting | Default | Effect |
 | --- | --- | --- |
-| View | Summary | Switches between summary and life-grid views |
+| View | Summary | Switches between summary, Life Ring, and life-grid views |
 | Grid unit | Weeks | Displays the grid in days, weeks, months, or years |
 | Show day count in bar | On | Shows or hides the number beside the icon |
 | Bar displays remaining days | Off | Switches the bar counter from days alive to days remaining |
@@ -71,7 +72,8 @@ lint_root=$(mktemp -d)
 ln -s /usr/share/omarchy/shell "$lint_root/qs"
 /usr/lib/qt6/bin/qmllint -I "$lint_root" \
   Service.qml BarWidget.qml Panel.qml Overlay.qml \
-  components/LifeProgress.qml components/LifeStats.qml components/LifeGrid.qml
+  components/LifeProgress.qml components/LifeRing.qml \
+  components/LifeStats.qml components/LifeGrid.qml
 rm -rf "$lint_root"
 ```
 
