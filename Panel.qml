@@ -162,7 +162,12 @@ Panel {
 
               Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: root.service ? Life.formatNumber(root.service.livedDays) : "0"
+                text: {
+                  if (!root.service) return "0"
+                  return root.service.beyondScale
+                    ? "+" + Life.formatNumber(root.service.beyondDays)
+                    : Life.formatNumber(root.service.remainingDays)
+                }
                 color: root.contentForeground
                 font.family: root.contentFontFamily
                 font.pixelSize: 48
@@ -171,7 +176,8 @@ Panel {
 
               Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "DAYS ALIVE"
+                text: root.service && root.service.beyondScale
+                  ? "DAYS BEYOND SCALE" : "DAYS REMAINING"
                 color: Qt.darker(root.contentForeground, 1.55)
                 font.family: root.contentFontFamily
                 font.pixelSize: Style.font.caption
@@ -198,22 +204,6 @@ Panel {
                 font.family: root.contentFontFamily
                 font.pixelSize: Style.font.bodySmall
               }
-            }
-
-            Text {
-              visible: !!root.service && (root.service.showRemaining || root.service.beyondScale)
-              width: parent.width
-              horizontalAlignment: Text.AlignHCenter
-              text: {
-                if (!root.service) return ""
-                if (root.service.beyondScale)
-                  return "+" + Life.formatNumber(root.service.beyondDays) + " days beyond your life scale"
-                return Life.formatNumber(root.service.remainingDays) + " days remaining"
-              }
-              color: root.service && root.service.beyondScale
-                ? Color.accent : Qt.darker(root.contentForeground, 1.3)
-              font.family: root.contentFontFamily
-              font.pixelSize: Style.font.body
             }
 
             LifeStats {

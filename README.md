@@ -11,7 +11,7 @@ Omalive turns your life into a visual scale. On first run it selects one random,
 - Life Ring view with the elapsed percentage centered in a circular progress ring
 - Life-grid view in days, weeks, months, or years, fitted into one complete view
 - First-run setup and Life Scale reveal
-- Optional daily overlay, shown at most once per local calendar day
+- Optional daily overlay emphasizing remaining days, shown at most once per local calendar day
 - Persistent identity, view, grid, bar, and overlay preferences
 - Graceful beyond-scale display instead of negative remaining days
 - Styling inherited from Omarchy Shell, including colors, fonts, spacing, borders, and controls

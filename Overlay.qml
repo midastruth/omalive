@@ -342,8 +342,13 @@ Item {
 
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "DAY " + (root.service ? Life.formatNumber(root.service.livedDays) : "0")
-            color: root.foreground
+            text: {
+              if (!root.service) return "0"
+              return root.service.beyondScale
+                ? "+" + Life.formatNumber(root.service.beyondDays)
+                : Life.formatNumber(root.service.remainingDays)
+            }
+            color: root.service && root.service.beyondScale ? Color.accent : root.foreground
             font.family: root.fontFamily
             font.pixelSize: 46
             font.bold: true
@@ -351,10 +356,12 @@ Item {
 
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "of " + (root.service ? Life.formatNumber(root.service.totalDays) : "0") + " days"
+            text: root.service && root.service.beyondScale
+              ? "DAYS BEYOND SCALE" : "DAYS REMAINING"
             color: Qt.darker(root.foreground, 1.45)
             font.family: root.fontFamily
             font.pixelSize: Style.font.body
+            font.letterSpacing: 1.8
           }
 
           LifeProgress {
@@ -365,26 +372,11 @@ Item {
 
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: root.service ? root.service.progressText : "0.00%"
+            text: (root.service ? root.service.progressText : "0.00%") + " elapsed"
             color: root.foreground
             font.family: root.fontFamily
             font.pixelSize: Style.font.body
             font.bold: true
-          }
-
-          Text {
-            visible: !!root.service && (root.service.showRemaining || root.service.beyondScale)
-            width: parent.width
-            horizontalAlignment: Text.AlignHCenter
-            text: {
-              if (!root.service) return ""
-              if (root.service.beyondScale)
-                return "+" + Life.formatNumber(root.service.beyondDays) + " days beyond your life scale"
-              return Life.formatNumber(root.service.remainingDays) + " days remain"
-            }
-            color: root.service && root.service.beyondScale ? Color.accent : Qt.darker(root.foreground, 1.35)
-            font.family: root.fontFamily
-            font.pixelSize: Style.font.body
           }
 
           Button {
@@ -422,30 +414,16 @@ Item {
           Text {
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
-            text: root.service
-              ? Life.formatNumber(root.service.livedDays) + " of "
-                + Life.formatNumber(root.service.totalDays) + " days lived"
-              : ""
-            color: root.foreground
-            font.family: root.fontFamily
-            font.pixelSize: Style.font.body
-            font.bold: true
-          }
-
-          Text {
-            visible: !!root.service && (root.service.showRemaining || root.service.beyondScale)
-            width: parent.width
-            horizontalAlignment: Text.AlignHCenter
             text: {
               if (!root.service) return ""
               if (root.service.beyondScale)
                 return "+" + Life.formatNumber(root.service.beyondDays) + " days beyond your life scale"
-              return Life.formatNumber(root.service.remainingDays) + " days remain"
+              return Life.formatNumber(root.service.remainingDays) + " days remaining"
             }
-            color: root.service && root.service.beyondScale
-              ? Color.accent : Qt.darker(root.foreground, 1.35)
+            color: root.service && root.service.beyondScale ? Color.accent : root.foreground
             font.family: root.fontFamily
             font.pixelSize: Style.font.body
+            font.bold: true
           }
 
           Button {
@@ -473,12 +451,14 @@ Item {
           Text {
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
-            text: root.service
-              ? Life.formatNumber(root.service.gridElapsed) + " / "
-                + Life.formatNumber(root.service.gridTotal) + " "
-                + root.unitLabel(root.service.gridUnit)
-              : ""
-            color: root.foreground
+            text: {
+              if (!root.service) return ""
+              if (root.service.beyondScale)
+                return "+" + Life.formatNumber(root.service.beyondDays) + " days beyond your life scale"
+              return Life.formatNumber(Math.max(0, root.service.gridTotal - root.service.gridElapsed))
+                + " " + root.unitLabel(root.service.gridUnit) + " remaining"
+            }
+            color: root.service && root.service.beyondScale ? Color.accent : root.foreground
             font.family: root.fontFamily
             font.pixelSize: Style.font.body
             font.bold: true
