@@ -100,4 +100,37 @@ const ringProfile = life.normalizeProfile({
 assert.equal(ringProfile.viewMode, "ring")
 assert.equal(life.normalizeProfile({ viewMode: "unknown" }).viewMode, "summary")
 
+const dayProfile = life.normalizeProfile({ viewMode: "day" })
+assert.equal(dayProfile.viewMode, "day")
+
+// Life Day: dawn ends at 2/19, dusk starts at 12/19, darkness at 14/19.
+const born = life.dayMetrics(0, 1900)
+assert.equal(born.phase, "dawn")
+assert.equal(born.nextPhase, "day")
+assert.equal(born.daysToNextPhase, 200)
+assert.equal(born.daysToDeath, 1900)
+
+const noon = life.dayMetrics(700, 1900)
+assert.equal(noon.phase, "day")
+assert.equal(noon.nextPhase, "dusk")
+assert.equal(noon.daysToNextPhase, 500)
+
+const atDusk = life.dayMetrics(1200, 1900)
+assert.equal(atDusk.phase, "dusk")
+assert.equal(atDusk.daysToNextPhase, 200)
+
+const lateNight = life.dayMetrics(1800, 1900)
+assert.equal(lateNight.phase, "darkness")
+assert.equal(lateNight.nextPhase, "death")
+assert.equal(lateNight.daysToNextPhase, 100)
+assert.equal(lateNight.daysToDeath, 100)
+
+const past = life.dayMetrics(2000, 1900)
+assert.equal(past.beyond, true)
+assert.equal(past.daysToDeath, 0)
+assert.equal(past.progress, 1)
+
+assert.equal(life.dayMetrics(0, 0).phase, "dawn")
+assert.equal(life.formatAge(3652.425), "10.0")
+
 console.log("Life.js: all tests passed")

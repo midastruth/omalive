@@ -3,6 +3,21 @@
 var DAY_MS = 86400000
 var MIN_AGE = 95
 var MAX_AGE = 120
+var VIEW_MODES = ["summary", "ring", "day", "grid"]
+
+// Life Day: the whole life scale is read as one day, from birth (first light)
+// to death (the day's end). Phase boundaries are fractions of the scale.
+var DAY_PHASES = [
+  { key: "dawn", label: "Dawn", start: 0, end: 2 / 19,
+    message: "First light. The day has already begun." },
+  { key: "day", label: "Day", start: 2 / 19, end: 12 / 19,
+    message: "The light is full. It will not stay." },
+  { key: "dusk", label: "Dusk", start: 12 / 19, end: 14 / 19,
+    message: "The light is going. Spend what remains." },
+  { key: "darkness", label: "Darkness", start: 14 / 19, end: 1,
+    message: "Darkness has fallen. The end is coming." }
+]
+var DAYS_PER_YEAR = 365.2425
 
 function pad2(value) {
   var text = String(Math.floor(Number(value) || 0))
@@ -118,7 +133,7 @@ function normalizeProfile(value) {
     showRemaining: source.showRemaining === undefined ? true : source.showRemaining === true,
     showBarDays: source.showBarDays === undefined ? true : source.showBarDays === true,
     barShowsRemaining: source.barShowsRemaining === true,
-    viewMode: ["summary", "ring", "grid"].indexOf(source.viewMode) >= 0
+    viewMode: VIEW_MODES.indexOf(source.viewMode) >= 0
       ? source.viewMode : "summary",
     gridUnit: ["days", "weeks", "months", "years"].indexOf(source.gridUnit) >= 0
       ? source.gridUnit : "weeks",
@@ -203,4 +218,72 @@ function formatNumber(value) {
 function formatPercent(value) {
   var number = Math.max(0, Number(value) || 0) * 100
   return number.toFixed(2) + "%"
+}
+
+function isViewMode(value) {
+  return VIEW_MODES.indexOf(value) >= 0
+}
+
+// Where today sits on the Life Day. Days-until values count whole days from
+// today to the first day whose progress reaches the boundary.
+function dayMetrics(livedDays, totalDays) {
+  var lived = Math.max(0, Math.floor(Number(livedDays) || 0))
+  var total = Math.max(0, Math.floor(Number(totalDays) || 0))
+  var phases = []
+  for (var i = 0; i < DAY_PHASES.length; i++) {
+    var phase = DAY_PHASES[i]
+    phases.push({
+      key: phase.key,
+      label: phase.label,
+      start: phase.start,
+      end: phase.end,
+      startAge: phase.start * total / DAYS_PER_YEAR,
+      message: phase.message
+    })
+  }
+
+  if (total <= 0) {
+    return {
+      progress: 0, phaseIndex: 0, phase: phases[0].key, phaseLabel: phases[0].label,
+      nextPhase: phases[1].key, nextPhaseLabel: phases[1].label,
+      daysToNextPhase: 0, daysToDeath: 0, phaseProgress: 0, beyond: false,
+      message: phases[0].message, phases: phases
+    }
+  }
+
+  var progress = lived / total
+  var beyond = progress >= 1
+  var clamped = Math.max(0, Math.min(1, progress))
+  var index = phases.length - 1
+  for (var j = 0; j < phases.length; j++) {
+    if (clamped < phases[j].end) { index = j; break }
+  }
+
+  function daysUntil(fraction) {
+    return Math.max(0, Math.ceil(fraction * total - 1e-9) - lived)
+  }
+
+  var current = phases[index]
+  var next = index + 1 < phases.length ? phases[index + 1] : null
+  var span = current.end - current.start
+
+  return {
+    progress: clamped,
+    phaseIndex: index,
+    phase: beyond ? "beyond" : current.key,
+    phaseLabel: beyond ? "Beyond the scale" : current.label,
+    nextPhase: next ? next.key : "death",
+    nextPhaseLabel: next ? next.label : "The end",
+    daysToNextPhase: daysUntil(next ? next.start : 1),
+    daysToDeath: daysUntil(1),
+    phaseProgress: span > 0 ? Math.max(0, Math.min(1, (clamped - current.start) / span)) : 0,
+    beyond: beyond,
+    message: beyond ? "Past the end of the scale. Every day now is borrowed light." : current.message,
+    phases: phases
+  }
+}
+
+function formatAge(livedDays) {
+  var years = Math.max(0, Number(livedDays) || 0) / DAYS_PER_YEAR
+  return years.toFixed(1)
 }

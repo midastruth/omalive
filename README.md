@@ -9,6 +9,7 @@ Omalive turns your life into a visual scale. On first run it selects one random,
 - Native Omarchy bar widget with an optional elapsed- or remaining-day counter
 - Click-to-open summary panel with progress, dates, and life-scale statistics
 - Life Ring view with the elapsed percentage centered in a circular progress ring
+- Life Day view: your whole Life Scale read as one day on a sun arc—birth at first light, death at the day's end—showing whether you are in dawn, day, dusk, or darkness, the days you have left, and days until the next phase
 - Life-grid view in days, weeks, months, or years, fitted into one complete view
 - First-run setup and Life Scale reveal
 - Optional daily overlay emphasizing remaining days, shown at most once per local calendar day
@@ -51,7 +52,7 @@ Use the settings button in the panel to configure:
 
 | Setting | Default | Effect |
 | --- | --- | --- |
-| View | Summary | Switches between summary, Life Ring, and life-grid views |
+| View | Summary | Switches between summary, Life Ring, Life Day, and life-grid views |
 | Grid unit | Weeks | Displays the grid in days, weeks, months, or years |
 | Show day count in bar | On | Shows or hides the number beside the icon |
 | Bar displays remaining days | Off | Switches the bar counter from days alive to days remaining |
@@ -72,7 +73,7 @@ lint_root=$(mktemp -d)
 ln -s /usr/share/omarchy/shell "$lint_root/qs"
 /usr/lib/qt6/bin/qmllint -I "$lint_root" \
   Service.qml BarWidget.qml Panel.qml Overlay.qml \
-  components/LifeProgress.qml components/LifeRing.qml \
+  components/LifeProgress.qml components/LifeRing.qml components/LifeDay.qml \
   components/LifeStats.qml components/LifeGrid.qml
 rm -rf "$lint_root"
 ```
@@ -123,6 +124,19 @@ It contains your name, birth date, fixed Life Scale, selected view and grid unit
 ## Life math
 
 All calendar calculations live in `js/Life.js`. Civil dates are converted to UTC day ordinals so daylight-saving transitions do not add or remove a day. A February 29 scale endpoint is clamped to February 28 in a non-leap endpoint year.
+
+### Life Day phases
+
+The Life Day maps the Life Scale linearly from birth to death:
+
+| Phase | Share of scale |
+| --- | --- |
+| Dawn | first 2/19 |
+| Day | next 10/19 |
+| Dusk | next 2/19 |
+| Darkness | final 5/19 |
+
+Phase boundaries are defined in `DAY_PHASES` in `js/Life.js`.
 
 ## Compatibility
 

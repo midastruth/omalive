@@ -63,6 +63,14 @@ Panel {
     return "weeks"
   }
 
+  function dayCountdownText() {
+    if (!service) return ""
+    var day = service.lifeDay
+    if (day.beyond)
+      return "+" + Life.formatNumber(service.beyondDays) + " days beyond your life scale"
+    return day.nextPhaseLabel + " in " + Life.formatNumber(day.daysToNextPhase) + " days"
+  }
+
   function requestReset() {
     if (!resetArmed) {
       resetArmed = true
@@ -111,7 +119,9 @@ Panel {
             : root.service && root.service.viewMode === "grid"
               ? gridColumn.implicitHeight
               : root.service && root.service.viewMode === "ring"
-                ? ringColumn.implicitHeight : summaryColumn.implicitHeight
+                ? ringColumn.implicitHeight
+                : root.service && root.service.viewMode === "day"
+                  ? dayColumn.implicitHeight : summaryColumn.implicitHeight
 
           Column {
             id: summaryColumn
@@ -323,6 +333,91 @@ Panel {
           }
 
           Column {
+            id: dayColumn
+            visible: !root.settingsOpen && !!root.service && root.service.viewMode === "day"
+            width: parent.width
+            spacing: Style.space(14)
+
+            Item {
+              width: parent.width
+              height: Math.max(dayTitle.implicitHeight, daySettingsButton.implicitHeight)
+
+              Text {
+                id: dayTitle
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: "LIFE DAY"
+                color: root.contentForeground
+                font.family: root.contentFontFamily
+                font.pixelSize: Style.font.body
+                font.bold: true
+                font.letterSpacing: 1.5
+              }
+
+              Button {
+                id: daySettingsButton
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                iconText: "󰒓"
+                tooltipText: "Omalive settings"
+                focusable: true
+                foreground: root.contentForeground
+                fontFamily: root.contentFontFamily
+                onClicked: root.openSettings()
+              }
+            }
+
+            Text {
+              anchors.horizontalCenter: parent.horizontalCenter
+              text: root.service ? root.service.name : ""
+              color: Qt.darker(root.contentForeground, 1.35)
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.body
+            }
+
+            LifeDay {
+              id: panelLifeDay
+              active: root.opened && !root.settingsOpen
+              width: parent.width
+              height: Style.space(200)
+              progress: root.service ? root.service.lifeDay.progress : 0
+              phases: root.service ? root.service.lifeDay.phases : []
+              phaseIndex: root.service ? root.service.lifeDay.phaseIndex : 0
+              countText: {
+                if (!root.service) return "0"
+                return root.service.beyondScale
+                  ? "+" + Life.formatNumber(root.service.beyondDays)
+                  : Life.formatNumber(root.service.remainingDays)
+              }
+              countLabel: root.service && root.service.beyondScale ? "DAYS BEYOND" : "DAYS LEFT"
+              phaseText: root.service ? root.service.lifeDay.phaseLabel : ""
+              foreground: root.contentForeground
+              fontFamily: root.contentFontFamily
+            }
+
+            Text {
+              width: parent.width
+              horizontalAlignment: Text.AlignHCenter
+              text: root.dayCountdownText()
+              color: root.service && root.service.lifeDay.beyond ? Color.accent : root.contentForeground
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.body
+              font.bold: true
+            }
+
+            Text {
+              width: parent.width
+              wrapMode: Text.WordWrap
+              horizontalAlignment: Text.AlignHCenter
+              text: root.service ? root.service.lifeDay.message : ""
+              color: Qt.darker(root.contentForeground, 1.5)
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.bodySmall
+              font.italic: true
+            }
+          }
+
+          Column {
             id: gridColumn
             visible: !root.settingsOpen && !!root.service && root.service.viewMode === "grid"
             width: parent.width
@@ -508,8 +603,9 @@ Panel {
             ButtonGroup {
               options: [
                 { value: "summary", label: "Summary" },
-                { value: "ring", label: "Life ring" },
-                { value: "grid", label: "Life grid" }
+                { value: "ring", label: "Ring" },
+                { value: "day", label: "Day" },
+                { value: "grid", label: "Grid" }
               ]
               value: root.service ? root.service.viewMode : "summary"
               foreground: root.contentForeground

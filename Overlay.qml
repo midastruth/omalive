@@ -436,6 +436,75 @@ Item {
         }
 
         Column {
+          visible: root.page === "daily" && !!root.service && root.service.viewMode === "day"
+          width: parent.width
+          spacing: Style.space(12)
+
+          Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: root.service ? root.service.name : ""
+            color: Qt.darker(root.foreground, 1.35)
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.body
+          }
+
+          LifeDay {
+            id: overlayLifeDay
+            active: root.opened
+            width: parent.width
+            height: Style.space(230)
+            progress: root.service ? root.service.lifeDay.progress : 0
+            phases: root.service ? root.service.lifeDay.phases : []
+            phaseIndex: root.service ? root.service.lifeDay.phaseIndex : 0
+            countText: {
+              if (!root.service) return "0"
+              return root.service.beyondScale
+                ? "+" + Life.formatNumber(root.service.beyondDays)
+                : Life.formatNumber(root.service.remainingDays)
+            }
+            countLabel: root.service && root.service.beyondScale ? "DAYS BEYOND" : "DAYS LEFT"
+            phaseText: root.service ? root.service.lifeDay.phaseLabel : ""
+            foreground: root.foreground
+            fontFamily: root.fontFamily
+          }
+
+          Text {
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            text: {
+              if (!root.service) return ""
+              var day = root.service.lifeDay
+              if (day.beyond)
+                return "Beyond your life scale"
+              return day.nextPhaseLabel + " in " + Life.formatNumber(day.daysToNextPhase) + " days"
+            }
+            color: root.service && root.service.lifeDay.beyond ? Color.accent : root.foreground
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.body
+            font.bold: true
+          }
+
+          Text {
+            width: parent.width
+            wrapMode: Text.WordWrap
+            horizontalAlignment: Text.AlignHCenter
+            text: root.service ? root.service.lifeDay.message : ""
+            color: Qt.darker(root.foreground, 1.45)
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.bodySmall
+            font.italic: true
+          }
+
+          Button {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: "Close"
+            foreground: root.foreground
+            fontFamily: root.fontFamily
+            onClicked: root.close()
+          }
+        }
+
+        Column {
           visible: root.page === "daily" && !!root.service && root.service.viewMode === "grid"
           width: parent.width
           spacing: Style.space(12)

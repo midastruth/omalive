@@ -32,7 +32,7 @@ Item {
   readonly property bool showRemaining: profile.showRemaining !== false
   readonly property bool showBarDays: profile.showBarDays !== false
   readonly property bool barShowsRemaining: profile.barShowsRemaining === true
-  readonly property string viewMode: ["summary", "ring", "grid"].indexOf(profile.viewMode) >= 0
+  readonly property string viewMode: Life.isViewMode(profile.viewMode)
     ? String(profile.viewMode) : "summary"
   readonly property string gridUnit: String(profile.gridUnit || "weeks")
   readonly property string lastShownDate: String(profile.lastShownDate || "")
@@ -47,6 +47,7 @@ Item {
   readonly property real visualProgress: life.visualProgress
   readonly property bool beyondScale: life.beyond
   readonly property string progressText: Life.formatPercent(progress)
+  readonly property var lifeDay: Life.dayMetrics(livedDays, totalDays)
   readonly property var unitGrid: Life.unitMetrics(birthday, maxAge, now, gridUnit)
   readonly property int gridTotal: unitGrid.total
   readonly property int gridElapsed: unitGrid.elapsed
@@ -130,7 +131,7 @@ Item {
   }
 
   function setViewMode(value) {
-    var selected = ["summary", "ring", "grid"].indexOf(value) >= 0 ? value : "summary"
+    var selected = Life.isViewMode(value) ? value : "summary"
     mutate(function(draft) { draft.viewMode = selected })
   }
 
