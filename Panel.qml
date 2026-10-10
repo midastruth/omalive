@@ -604,7 +604,7 @@ Panel {
               options: [
                 { value: "summary", label: "Summary" },
                 { value: "ring", label: "Ring" },
-                { value: "day", label: "Day" },
+                { value: "day", label: "Arc" },
                 { value: "grid", label: "Grid" }
               ]
               value: root.service ? root.service.viewMode : "summary"
