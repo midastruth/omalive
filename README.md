@@ -125,19 +125,6 @@ It contains your name, birth date, fixed Life Scale, selected view and grid unit
 
 All calendar calculations live in `js/Life.js`. Civil dates are converted to UTC day ordinals so daylight-saving transitions do not add or remove a day. A February 29 scale endpoint is clamped to February 28 in a non-leap endpoint year.
 
-### Life Day phases
-
-The Life Day maps the Life Scale linearly from birth to death:
-
-| Phase | Share of scale |
-| --- | --- |
-| Dawn | first 2/19 |
-| Day | next 10/19 |
-| Dusk | next 2/19 |
-| Darkness | final 5/19 |
-
-Phase boundaries are defined in `DAY_PHASES` in `js/Life.js`.
-
 ## Compatibility
 
 Developed against Omarchy `4.0.3` / Quickshell. The plugin manifest uses schema version 1.
