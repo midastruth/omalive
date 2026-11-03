@@ -4,6 +4,17 @@ var DAY_MS = 86400000
 var MIN_AGE = 95
 var MAX_AGE = 120
 var VIEW_MODES = ["summary", "ring", "day", "grid"]
+var GRID_UNITS = ["days", "weeks", "months", "years"]
+
+// Every surface draws the life grid with the same fixed column count, so the
+// panel and the daily overlay show the same shape and the same "now" cell.
+// Each row is a readable span of time rather than an aspect-ratio accident.
+var GRID_LAYOUTS = {
+  days: { columns: 210, row: "30 weeks" },
+  weeks: { columns: 104, row: "2 years" },
+  months: { columns: 36, row: "3 years" },
+  years: { columns: 10, row: "a decade" }
+}
 
 // Life Day: the whole life scale is read as one day, from birth (first light)
 // to death (the day's end). Phase boundaries are fractions of the scale.
@@ -105,7 +116,6 @@ function defaultProfile() {
     birthday: "",
     maxAge: 0,
     dailyDisplay: true,
-    showRemaining: true,
     showBarDays: true,
     barShowsRemaining: false,
     viewMode: "summary",
@@ -130,13 +140,11 @@ function normalizeProfile(value) {
     birthday: initialized ? isoDate(birthday.year, birthday.month, birthday.day) : fallback.birthday,
     maxAge: initialized ? maxAge : fallback.maxAge,
     dailyDisplay: source.dailyDisplay === undefined ? true : source.dailyDisplay === true,
-    showRemaining: source.showRemaining === undefined ? true : source.showRemaining === true,
     showBarDays: source.showBarDays === undefined ? true : source.showBarDays === true,
     barShowsRemaining: source.barShowsRemaining === true,
     viewMode: VIEW_MODES.indexOf(source.viewMode) >= 0
       ? source.viewMode : "summary",
-    gridUnit: ["days", "weeks", "months", "years"].indexOf(source.gridUnit) >= 0
-      ? source.gridUnit : "weeks",
+    gridUnit: gridUnit(source.gridUnit),
     lastShownDate: parseIsoDate(source.lastShownDate) ? String(source.lastShownDate) : ""
   }
 }
@@ -180,7 +188,7 @@ function unitMetrics(birthday, maxAge, today, unit) {
   var born = parseIsoDate(birthday)
   var current = parseIsoDate(todayKey(today))
   var age = Math.floor(Number(maxAge))
-  var selected = ["days", "weeks", "months", "years"].indexOf(unit) >= 0 ? unit : "weeks"
+  var selected = gridUnit(unit)
   if (!born || !current || !isFinite(age) || age <= 0)
     return { unit: selected, total: 0, elapsed: 0 }
 
@@ -222,6 +230,34 @@ function formatPercent(value) {
 
 function isViewMode(value) {
   return VIEW_MODES.indexOf(value) >= 0
+}
+
+function gridUnit(value) {
+  return GRID_UNITS.indexOf(value) >= 0 ? value : "weeks"
+}
+
+function gridColumns(unit) {
+  return GRID_LAYOUTS[gridUnit(unit)].columns
+}
+
+function gridRowText(unit) {
+  return "Each row is " + GRID_LAYOUTS[gridUnit(unit)].row + "."
+}
+
+// Shared copy so the panel and the daily overlay always say the same thing.
+function remainingText(remaining, unit, beyond, beyondDays) {
+  if (beyond) return "+" + formatNumber(beyondDays) + " days beyond your life scale"
+  return formatNumber(remaining) + " " + gridUnit(unit) + " remaining"
+}
+
+function livedText(elapsed, total, unit) {
+  return formatNumber(elapsed) + " of " + formatNumber(total) + " " + gridUnit(unit) + " lived"
+}
+
+function dayCountdownText(day, beyondDays) {
+  if (!day) return ""
+  if (day.beyond) return "+" + formatNumber(beyondDays) + " days beyond your life scale"
+  return day.nextPhaseLabel + " in " + formatNumber(day.daysToNextPhase) + " days"
 }
 
 // Where today sits on the Life Day. Days-until values count whole days from

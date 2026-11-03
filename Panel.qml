@@ -56,19 +56,8 @@ Panel {
     if (service && service.updateIdentity(nameField.text, birthdayField.text)) closeSettings()
   }
 
-  function unitLabel(unit) {
-    if (unit === "days") return "days"
-    if (unit === "months") return "months"
-    if (unit === "years") return "years"
-    return "weeks"
-  }
-
   function dayCountdownText() {
-    if (!service) return ""
-    var day = service.lifeDay
-    if (day.beyond)
-      return "+" + Life.formatNumber(service.beyondDays) + " days beyond your life scale"
-    return day.nextPhaseLabel + " in " + Life.formatNumber(day.daysToNextPhase) + " days"
+    return service ? Life.dayCountdownText(service.lifeDay, service.beyondDays) : ""
   }
 
   function requestReset() {
@@ -295,30 +284,21 @@ Panel {
             Text {
               width: parent.width
               horizontalAlignment: Text.AlignHCenter
-              text: root.service
-                ? Life.formatNumber(root.service.livedDays) + " of "
-                  + Life.formatNumber(root.service.totalDays) + " days lived"
-                : ""
-              color: root.contentForeground
+              text: root.service ? Life.remainingText(root.service.remainingDays, "days",
+                root.service.beyondScale, root.service.beyondDays) : ""
+              color: root.service && root.service.beyondScale ? Color.accent : root.contentForeground
               font.family: root.contentFontFamily
               font.pixelSize: Style.font.body
               font.bold: true
             }
 
             Text {
-              visible: !!root.service && (root.service.showRemaining || root.service.beyondScale)
               width: parent.width
               horizontalAlignment: Text.AlignHCenter
-              text: {
-                if (!root.service) return ""
-                if (root.service.beyondScale)
-                  return "+" + Life.formatNumber(root.service.beyondDays) + " days beyond your life scale"
-                return Life.formatNumber(root.service.remainingDays) + " days remaining"
-              }
-              color: root.service && root.service.beyondScale
-                ? Color.accent : Qt.darker(root.contentForeground, 1.3)
+              text: root.service ? Life.livedText(root.service.livedDays, root.service.totalDays, "days") : ""
+              color: Qt.darker(root.contentForeground, 1.3)
               font.family: root.contentFontFamily
-              font.pixelSize: Style.font.body
+              font.pixelSize: Style.font.bodySmall
             }
 
             Text {
@@ -453,14 +433,19 @@ Panel {
             }
 
             Text {
+              anchors.horizontalCenter: parent.horizontalCenter
+              text: root.service ? root.service.name : ""
+              color: Qt.darker(root.contentForeground, 1.35)
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.body
+            }
+
+            Text {
               width: parent.width
               horizontalAlignment: Text.AlignHCenter
-              text: root.service
-                ? Life.formatNumber(root.service.gridElapsed) + " / "
-                  + Life.formatNumber(root.service.gridTotal) + " "
-                  + root.unitLabel(root.service.gridUnit)
-                : ""
-              color: root.contentForeground
+              text: root.service ? Life.remainingText(root.service.gridRemaining, root.service.gridUnit,
+                root.service.beyondScale, root.service.beyondDays) : ""
+              color: root.service && root.service.beyondScale ? Color.accent : root.contentForeground
               font.family: root.contentFontFamily
               font.pixelSize: Style.font.body
               font.bold: true
@@ -469,37 +454,31 @@ Panel {
             LifeGrid {
               id: panelLifeGrid
               width: parent.width
-              height: Style.space(310)
+              // Fill the panel width; only cap when the screen is too short.
+              height: Math.min(naturalHeight, Math.max(Style.space(310), panel.availableCardHeight * 0.55))
+              columns: root.service ? Life.gridColumns(root.service.gridUnit) : 0
               totalUnits: root.service ? root.service.gridTotal : 0
               elapsedUnits: root.service ? root.service.gridElapsed : 0
               foreground: root.contentForeground
               fontFamily: root.contentFontFamily
             }
 
-            Row {
+            LifeGridLegend {
               anchors.horizontalCenter: parent.horizontalCenter
-              spacing: Style.space(16)
+              grid: panelLifeGrid
+              foreground: root.contentForeground
+              fontFamily: root.contentFontFamily
+            }
 
-              Text {
-                text: "■ lived"
-                color: root.contentForeground
-                font.family: root.contentFontFamily
-                font.pixelSize: Style.font.caption
-              }
-
-              Text {
-                text: "■ now"
-                color: Color.accent
-                font.family: root.contentFontFamily
-                font.pixelSize: Style.font.caption
-              }
-
-              Text {
-                text: "□ remaining"
-                color: Qt.darker(root.contentForeground, 1.45)
-                font.family: root.contentFontFamily
-                font.pixelSize: Style.font.caption
-              }
+            Text {
+              width: parent.width
+              wrapMode: Text.WordWrap
+              horizontalAlignment: Text.AlignHCenter
+              text: root.service ? Life.livedText(root.service.gridElapsed, root.service.gridTotal,
+                root.service.gridUnit) + " · " + Life.gridRowText(root.service.gridUnit) : ""
+              color: Qt.darker(root.contentForeground, 1.65)
+              font.family: root.contentFontFamily
+              font.pixelSize: Style.font.caption
             }
           }
 
@@ -639,7 +618,8 @@ Panel {
               width: parent.width
               wrapMode: Text.WordWrap
               text: root.service
-                ? Life.formatNumber(root.service.gridTotal) + " cells at the selected unit."
+                ? Life.formatNumber(root.service.gridTotal) + " cells at the selected unit. "
+                  + Life.gridRowText(root.service.gridUnit)
                 : ""
               color: Qt.darker(root.contentForeground, 1.65)
               font.family: root.contentFontFamily
@@ -712,29 +692,6 @@ Panel {
                 checked: !!root.service && root.service.dailyDisplay
                 foreground: root.contentForeground
                 onToggled: if (root.service) root.service.setDailyDisplay(!checked)
-              }
-            }
-
-            Item {
-              width: parent.width
-              height: remainingLabel.implicitHeight + Style.space(8)
-
-              Text {
-                id: remainingLabel
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                text: "Show remaining days in panel"
-                color: root.contentForeground
-                font.family: root.contentFontFamily
-                font.pixelSize: Style.font.body
-              }
-
-              ToggleSwitch {
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                checked: !!root.service && root.service.showRemaining
-                foreground: root.contentForeground
-                onToggled: if (root.service) root.service.setShowRemaining(!checked)
               }
             }
 

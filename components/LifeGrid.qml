@@ -6,6 +6,8 @@ Item {
 
   property int totalUnits: 0
   property int elapsedUnits: 0
+  // Owners pass Life.gridColumns(unit) so every surface draws the same shape.
+  // Zero falls back to an aspect-ratio fit.
   property int columns: 0
   property color foreground: Color.foreground
   property color accent: Color.accent
@@ -13,10 +15,18 @@ Item {
 
   readonly property int safeTotal: Math.max(0, totalUnits)
   readonly property int safeElapsed: Math.max(0, Math.min(safeTotal, elapsedUnits))
+  // Exposed so legends use exactly the colours painted into the cells.
   readonly property color livedColor: Style.selectedStateColor(foreground, accent)
+  readonly property color presentColor: Qt.rgba(accent.r, accent.g, accent.b, 0.78)
+  readonly property color emptyColor: Qt.rgba(foreground.r, foreground.g, foreground.b, 0.42)
   readonly property int fittedColumns: columns > 0 ? columns : Math.max(1,
     Math.ceil(Math.sqrt(safeTotal * Math.max(1, width) / Math.max(1, height))))
   readonly property int fittedRows: Math.max(1, Math.ceil(safeTotal / fittedColumns))
+  // Height at which square cells fill the full width; owners cap it. Only
+  // defined for fixed columns, since the fallback fit itself reads height.
+  readonly property real naturalHeight: columns > 0
+    ? width / columns * Math.max(1, Math.ceil(safeTotal / columns))
+    : implicitHeight
 
   implicitWidth: Style.space(360)
   implicitHeight: Style.space(300)
@@ -37,6 +47,7 @@ Item {
   onSafeElapsedChanged: canvas.requestPaint()
   onForegroundChanged: canvas.requestPaint()
   onAccentChanged: canvas.requestPaint()
+  onLivedColorChanged: canvas.requestPaint()
   onFittedColumnsChanged: canvas.requestPaint()
   onFittedRowsChanged: canvas.requestPaint()
 
@@ -53,17 +64,13 @@ Item {
       ctx.clearRect(0, 0, width, height)
       if (root.safeTotal <= 0 || width <= 0 || height <= 0) return
 
-      var cellWidth = width / root.fittedColumns
-      var cellHeight = height / root.fittedRows
-      var size = Math.min(cellWidth, cellHeight)
-      var gridWidth = cellWidth * root.fittedColumns
-      var gridHeight = cellHeight * root.fittedRows
-      var originX = (width - gridWidth) / 2
-      var originY = (height - gridHeight) / 2
+      // Square cells: the grid keeps its shape whatever box it is given.
+      var size = Math.min(width / root.fittedColumns, height / root.fittedRows)
+      var originX = (width - size * root.fittedColumns) / 2
+      var originY = (height - size * root.fittedRows) / 2
       var gap = size >= 12 ? 2 : size >= 6 ? 1.4 : size >= 3 ? 0.75 : 0.3
       var square = Math.max(0.6, size - gap)
-      var insetX = (cellWidth - square) / 2
-      var insetY = (cellHeight - square) / 2
+      var inset = (size - square) / 2
       var emptyColor = root.rgba(root.foreground, size >= 4 ? 0.42 : 0.34)
       var presentColor = root.rgba(root.accent, 0.78)
 
@@ -71,8 +78,8 @@ Item {
       for (var index = 0; index < root.safeTotal; index++) {
         var column = index % root.fittedColumns
         var row = Math.floor(index / root.fittedColumns)
-        var x = originX + column * cellWidth + insetX
-        var y = originY + row * cellHeight + insetY
+        var x = originX + column * size + inset
+        var y = originY + row * size + inset
 
         if (index < root.safeElapsed) {
           ctx.fillStyle = root.livedColor

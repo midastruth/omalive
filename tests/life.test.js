@@ -50,7 +50,6 @@ const normalized = life.normalizeProfile({
   birthday: "1995-08-20",
   maxAge: 107,
   dailyDisplay: false,
-  showRemaining: false,
   showBarDays: false,
   barShowsRemaining: true,
   lastShownDate: "2026-09-12"
@@ -58,7 +57,7 @@ const normalized = life.normalizeProfile({
 assert.equal(normalized.initialized, true)
 assert.equal(normalized.maxAge, 107)
 assert.equal(normalized.dailyDisplay, false)
-assert.equal(normalized.showRemaining, false)
+assert.equal(normalized.showRemaining, undefined)
 assert.equal(normalized.showBarDays, false)
 assert.equal(normalized.barShowsRemaining, true)
 assert.equal(normalized.viewMode, "summary")
@@ -132,5 +131,17 @@ assert.equal(past.progress, 1)
 
 assert.equal(life.dayMetrics(0, 0).phase, "dawn")
 assert.equal(life.formatAge(3652.425), "10.0")
+
+
+assert.equal(life.gridColumns("years"), 10)
+assert.equal(life.gridColumns("months"), 36)
+assert.equal(life.gridColumns("weeks"), 104)
+assert.equal(life.gridColumns("days"), 210)
+assert.equal(life.gridColumns("bogus"), 104)
+assert.equal(life.remainingText(761, "months", false, 0), "761 months remaining")
+assert.equal(life.remainingText(0, "weeks", true, 1234), "+1,234 days beyond your life scale")
+assert.equal(life.livedText(439, 1200, "months"), "439 of 1,200 months lived")
+assert.equal(life.dayCountdownText({ beyond: false, nextPhaseLabel: "Dusk", daysToNextPhase: 1500 }, 0), "Dusk in 1,500 days")
+assert.equal(life.dayCountdownText({ beyond: true }, 12), "+12 days beyond your life scale")
 
 console.log("Life.js: all tests passed")

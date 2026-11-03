@@ -50,13 +50,6 @@ Item {
     if (service) service.validationError = ""
   }
 
-  function unitLabel(unit) {
-    if (unit === "days") return "days"
-    if (unit === "months") return "months"
-    if (unit === "years") return "years"
-    return "weeks"
-  }
-
   function birthDate() {
     var year = String(yearField.text || "")
     var month = String(monthField.text || "")
@@ -414,16 +407,21 @@ Item {
           Text {
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
-            text: {
-              if (!root.service) return ""
-              if (root.service.beyondScale)
-                return "+" + Life.formatNumber(root.service.beyondDays) + " days beyond your life scale"
-              return Life.formatNumber(root.service.remainingDays) + " days remaining"
-            }
+            text: root.service ? Life.remainingText(root.service.remainingDays, "days",
+              root.service.beyondScale, root.service.beyondDays) : ""
             color: root.service && root.service.beyondScale ? Color.accent : root.foreground
             font.family: root.fontFamily
             font.pixelSize: Style.font.body
             font.bold: true
+          }
+
+          Text {
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            text: root.service ? Life.livedText(root.service.livedDays, root.service.totalDays, "days") : ""
+            color: Qt.darker(root.foreground, 1.3)
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.bodySmall
           }
 
           Button {
@@ -471,13 +469,7 @@ Item {
           Text {
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
-            text: {
-              if (!root.service) return ""
-              var day = root.service.lifeDay
-              if (day.beyond)
-                return "Beyond your life scale"
-              return day.nextPhaseLabel + " in " + Life.formatNumber(day.daysToNextPhase) + " days"
-            }
+            text: root.service ? Life.dayCountdownText(root.service.lifeDay, root.service.beyondDays) : ""
             color: root.service && root.service.lifeDay.beyond ? Color.accent : root.foreground
             font.family: root.fontFamily
             font.pixelSize: Style.font.body
@@ -520,13 +512,8 @@ Item {
           Text {
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
-            text: {
-              if (!root.service) return ""
-              if (root.service.beyondScale)
-                return "+" + Life.formatNumber(root.service.beyondDays) + " days beyond your life scale"
-              return Life.formatNumber(Math.max(0, root.service.gridTotal - root.service.gridElapsed))
-                + " " + root.unitLabel(root.service.gridUnit) + " remaining"
-            }
+            text: root.service ? Life.remainingText(root.service.gridRemaining, root.service.gridUnit,
+              root.service.beyondScale, root.service.beyondDays) : ""
             color: root.service && root.service.beyondScale ? Color.accent : root.foreground
             font.family: root.fontFamily
             font.pixelSize: Style.font.body
@@ -536,37 +523,31 @@ Item {
           LifeGrid {
             id: overlayLifeGrid
             width: parent.width
-            height: Math.min(Style.space(360), window.height * 0.52)
+            // Fill the card width; only cap when the screen is too short.
+            height: Math.min(naturalHeight, window.height * 0.55)
+            columns: root.service ? Life.gridColumns(root.service.gridUnit) : 0
             totalUnits: root.service ? root.service.gridTotal : 0
             elapsedUnits: root.service ? root.service.gridElapsed : 0
             foreground: root.foreground
             fontFamily: root.fontFamily
           }
 
-          Row {
+          LifeGridLegend {
             anchors.horizontalCenter: parent.horizontalCenter
-            spacing: Style.space(16)
+            grid: overlayLifeGrid
+            foreground: root.foreground
+            fontFamily: root.fontFamily
+          }
 
-            Text {
-              text: "■ lived"
-              color: root.foreground
-              font.family: root.fontFamily
-              font.pixelSize: Style.font.caption
-            }
-
-            Text {
-              text: "■ now"
-              color: Color.accent
-              font.family: root.fontFamily
-              font.pixelSize: Style.font.caption
-            }
-
-            Text {
-              text: "□ remaining"
-              color: Qt.darker(root.foreground, 1.45)
-              font.family: root.fontFamily
-              font.pixelSize: Style.font.caption
-            }
+          Text {
+            width: parent.width
+            wrapMode: Text.WordWrap
+            horizontalAlignment: Text.AlignHCenter
+            text: root.service ? Life.livedText(root.service.gridElapsed, root.service.gridTotal,
+              root.service.gridUnit) + " · " + Life.gridRowText(root.service.gridUnit) : ""
+            color: Qt.darker(root.foreground, 1.65)
+            font.family: root.fontFamily
+            font.pixelSize: Style.font.caption
           }
 
           Button {

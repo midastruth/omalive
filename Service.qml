@@ -29,7 +29,6 @@ Item {
   readonly property string birthday: initialized ? String(profile.birthday) : ""
   readonly property int maxAge: initialized ? Number(profile.maxAge) : 0
   readonly property bool dailyDisplay: profile.dailyDisplay !== false
-  readonly property bool showRemaining: profile.showRemaining !== false
   readonly property bool showBarDays: profile.showBarDays !== false
   readonly property bool barShowsRemaining: profile.barShowsRemaining === true
   readonly property string viewMode: Life.isViewMode(profile.viewMode)
@@ -51,6 +50,7 @@ Item {
   readonly property var unitGrid: Life.unitMetrics(birthday, maxAge, now, gridUnit)
   readonly property int gridTotal: unitGrid.total
   readonly property int gridElapsed: unitGrid.elapsed
+  readonly property int gridRemaining: Math.max(0, gridTotal - gridElapsed)
 
   onShellChanged: if (shell && ready) {
     lastEvaluatedDate = ""
@@ -116,10 +116,6 @@ Item {
   function setDailyDisplay(value) {
     mutate(function(draft) { draft.dailyDisplay = value === true })
     if (value === true) Qt.callLater(root.evaluateDaily)
-  }
-
-  function setShowRemaining(value) {
-    mutate(function(draft) { draft.showRemaining = value === true })
   }
 
   function setShowBarDays(value) {
