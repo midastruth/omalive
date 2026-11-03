@@ -40,6 +40,7 @@ Item {
     if (page === "daily" && (!service || !service.initialized)) page = "setup"
     if (service) service.validationError = ""
     opened = true
+    contentViewport.contentY = 0
     focusTimer.restart()
     if (page === "daily" && service && service.viewMode === "grid")
       Qt.callLater(function() { overlayLifeGrid.revealPresent() })
@@ -63,6 +64,7 @@ Item {
     if (!service) return
     if (service.initialize(nameField.text, birthDate())) {
       page = "scale"
+      contentViewport.contentY = 0
       focusTimer.restart()
     }
   }
@@ -123,7 +125,8 @@ Item {
     BorderSurface {
       id: card
       width: Math.min(window.width - Style.space(48), Style.space(520))
-      height: Math.min(window.height - Style.space(64), contentColumn.implicitHeight + Style.space(64))
+      height: Math.min(window.height - Style.space(64), contentViewport.contentHeight
+        + card.contentTopInset + card.contentBottomInset)
       anchors.centerIn: parent
       color: Color.popups.background
       borderSpec: Border.surfaceSpec("popups", "border", Color.popups.border, Math.max(1, Style.space(2)))
@@ -151,16 +154,17 @@ Item {
         }
       }
 
-      Column {
-        id: contentColumn
-        anchors.left: parent.left
-        anchors.right: parent.right
+      ScrollableColumn {
+        id: contentViewport
+        anchors.fill: parent
         anchors.leftMargin: card.contentLeftInset
         anchors.rightMargin: card.contentRightInset
-        anchors.verticalCenter: parent.verticalCenter
+        anchors.topMargin: card.contentTopInset
+        anchors.bottomMargin: card.contentBottomInset
         spacing: Style.space(18)
 
         Text {
+          id: overlayTitle
           anchors.horizontalCenter: parent.horizontalCenter
           text: "OMALIVE"
           color: root.foreground
@@ -497,12 +501,19 @@ Item {
         }
 
         Column {
+          id: overlayGridColumn
           visible: root.page === "daily" && !!root.service && root.service.viewMode === "grid"
           width: parent.width
           spacing: Style.space(12)
+          readonly property real chromeHeight: overlayGridName.implicitHeight
+            + overlayGridRemaining.implicitHeight + overlayGridLegend.implicitHeight
+            + overlayGridFooter.implicitHeight + overlayGridClose.implicitHeight + spacing * 5
 
           Text {
-            anchors.horizontalCenter: parent.horizontalCenter
+            id: overlayGridName
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            elide: Text.ElideRight
             text: root.service ? root.service.name : ""
             color: Qt.darker(root.foreground, 1.35)
             font.family: root.fontFamily
@@ -510,8 +521,10 @@ Item {
           }
 
           Text {
+            id: overlayGridRemaining
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
             text: root.service ? Life.remainingText(root.service.gridRemaining, root.service.gridUnit,
               root.service.beyondScale, root.service.beyondDays) : ""
             color: root.service && root.service.beyondScale ? Color.accent : root.foreground
@@ -523,8 +536,11 @@ Item {
           LifeGrid {
             id: overlayLifeGrid
             width: parent.width
-            // Fill the card width; only cap when the screen is too short.
-            height: Math.min(naturalHeight, window.height * 0.55)
+            height: Math.min(naturalHeight, Math.max(Style.space(80), Math.min(
+              window.height * 0.5,
+              window.height - Style.space(64) - card.contentTopInset - card.contentBottomInset
+              - overlayTitle.implicitHeight - contentViewport.spacing
+              - overlayGridColumn.chromeHeight)))
             columns: root.service ? Life.gridColumns(root.service.gridUnit) : 0
             totalUnits: root.service ? root.service.gridTotal : 0
             elapsedUnits: root.service ? root.service.gridElapsed : 0
@@ -533,6 +549,7 @@ Item {
           }
 
           LifeGridLegend {
+            id: overlayGridLegend
             anchors.horizontalCenter: parent.horizontalCenter
             grid: overlayLifeGrid
             foreground: root.foreground
@@ -540,17 +557,19 @@ Item {
           }
 
           Text {
+            id: overlayGridFooter
             width: parent.width
             wrapMode: Text.WordWrap
             horizontalAlignment: Text.AlignHCenter
             text: root.service ? Life.livedText(root.service.gridElapsed, root.service.gridTotal,
-              root.service.gridUnit) + " · " + Life.gridRowText(root.service.gridUnit) : ""
+              root.service.gridUnit) : ""
             color: Qt.darker(root.foreground, 1.65)
             font.family: root.fontFamily
             font.pixelSize: Style.font.caption
           }
 
           Button {
+            id: overlayGridClose
             anchors.horizontalCenter: parent.horizontalCenter
             text: "Close"
             foreground: root.foreground

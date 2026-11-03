@@ -10,7 +10,7 @@ Omalive turns your life into a visual scale. On first run it selects one random,
 - Click-to-open summary panel with progress, dates, and life-scale statistics
 - Life Ring view with the elapsed percentage centered in a circular progress ring
 - Life Day view: your whole Life Scale read as one day on a sun arc—birth at first light, death at the day's end—showing whether you are in dawn, day, dusk, or darkness, the days you have left, and days until the next phase
-- Life-grid view in days, weeks, months, or years with a fixed layout per unit (10 years, 3 years, 2 years, or 30 weeks per row), identical in the panel and the daily overlay
+- Life-grid view in days, weeks, months, or years with a fixed layout per unit (10 years, 3 years, 78 weeks / 1.5 years, or 30 weeks per row), identical in the panel and the daily overlay; the whole grid is always visible at a glance, with the grid capped at half the screen height and cells shrinking to fit instead of scrolling
 - First-run setup and Life Scale reveal
 - Optional daily overlay emphasizing remaining days, shown at most once per local calendar day
 - Persistent identity, view, grid, bar, and overlay preferences
@@ -67,13 +67,16 @@ Validate the source tree:
 ```bash
 omarchy plugin validate .
 node tests/life.test.js
+QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software \
+  /usr/lib/qt6/bin/qmltestrunner -import tests/fixtures -input tests
 
 lint_root=$(mktemp -d)
 ln -s /usr/share/omarchy/shell "$lint_root/qs"
 /usr/lib/qt6/bin/qmllint -I "$lint_root" \
   Service.qml BarWidget.qml Panel.qml Overlay.qml \
   components/LifeProgress.qml components/LifeRing.qml components/LifeDay.qml \
-  components/LifeStats.qml components/LifeGrid.qml components/LifeGridLegend.qml
+  components/LifeStats.qml components/LifeGrid.qml components/LifeGridLegend.qml \
+  components/ScrollableColumn.qml
 rm -rf "$lint_root"
 ```
 

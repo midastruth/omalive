@@ -11,7 +11,7 @@ var GRID_UNITS = ["days", "weeks", "months", "years"]
 // Each row is a readable span of time rather than an aspect-ratio accident.
 var GRID_LAYOUTS = {
   days: { columns: 210, row: "30 weeks" },
-  weeks: { columns: 104, row: "2 years" },
+  weeks: { columns: 78, row: "78 weeks (1.5 years)" },
   months: { columns: 36, row: "3 years" },
   years: { columns: 10, row: "a decade" }
 }
@@ -214,7 +214,10 @@ function unitMetrics(birthday, maxAge, today, unit) {
   return {
     unit: selected,
     total: Math.max(0, total),
-    elapsed: Math.max(0, Math.min(total, elapsed))
+    // The final week may be shorter than seven days. It is complete at the
+    // scale endpoint, not at the next seven-day boundary.
+    elapsed: dayMetrics.livedDays >= dayMetrics.totalDays
+      ? Math.max(0, total) : Math.max(0, Math.min(total, elapsed))
   }
 }
 

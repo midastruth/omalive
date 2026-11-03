@@ -76,6 +76,30 @@ assert.equal(yearGrid.elapsed, 31)
 assert.equal(life.unitMetrics("2000-02-29", 107, new Date(2001, 1, 28, 12), "years").elapsed, 1)
 assert.equal(life.unitMetrics("2000-01-31", 107, new Date(2000, 1, 29, 12), "months").elapsed, 1)
 
+// Every unit must finish at the civil-date endpoint, including a partial last
+// week and February 29 scales clamped to February 28.
+for (const birthday of ["2000-01-01", "2000-02-29"]) {
+  for (let age = 95; age <= 120; age++) {
+    const endDate = life.metrics(birthday, age, new Date(2026, 0, 1, 12)).endDate
+    const end = life.parseIsoDate(endDate)
+    for (const unit of ["days", "weeks", "months", "years"]) {
+      const before = life.unitMetrics(birthday, age,
+        new Date(end.year, end.month - 1, end.day - 1, 12), unit)
+      assert.equal(before.elapsed, before.total - 1, `${birthday}/${age}/${unit}: last cell is now`)
+      for (const offset of [0, 1, 6, 7]) {
+        const finished = life.unitMetrics(birthday, age,
+          new Date(end.year, end.month - 1, end.day + offset, 12), unit)
+        assert.equal(finished.elapsed, finished.total,
+          `${birthday}/${age}/${unit}: complete ${offset} days after endpoint`)
+      }
+    }
+  }
+}
+
+const partialLastWeek = life.unitMetrics("2000-01-01", 96, new Date(2096, 0, 1, 12), "weeks")
+assert.equal(life.remainingText(partialLastWeek.total - partialLastWeek.elapsed,
+  "weeks", false, 0), "0 weeks remaining")
+
 const gridProfile = life.normalizeProfile({
   initialized: true,
   name: "Midas",
@@ -135,9 +159,10 @@ assert.equal(life.formatAge(3652.425), "10.0")
 
 assert.equal(life.gridColumns("years"), 10)
 assert.equal(life.gridColumns("months"), 36)
-assert.equal(life.gridColumns("weeks"), 104)
+assert.equal(life.gridColumns("weeks"), 78)
+assert.equal(life.gridRowText("weeks"), "Each row is 78 weeks (1.5 years).")
 assert.equal(life.gridColumns("days"), 210)
-assert.equal(life.gridColumns("bogus"), 104)
+assert.equal(life.gridColumns("bogus"), 78)
 assert.equal(life.remainingText(761, "months", false, 0), "761 months remaining")
 assert.equal(life.remainingText(0, "weeks", true, 1234), "+1,234 days beyond your life scale")
 assert.equal(life.livedText(439, 1200, "months"), "439 of 1,200 months lived")

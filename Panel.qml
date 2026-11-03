@@ -402,8 +402,17 @@ Panel {
             visible: !root.settingsOpen && !!root.service && root.service.viewMode === "grid"
             width: parent.width
             spacing: Style.space(14)
+            readonly property real chromeHeight: gridHeader.height + gridName.implicitHeight
+              + gridRemaining.implicitHeight + gridLegend.implicitHeight
+              + gridFooter.implicitHeight + spacing * 5
+            // Cap the grid at half the screen so the panel stays compact;
+            // cells shrink instead of scrolling. Never scroll.
+            readonly property real gridBudget: Math.max(Style.space(80), Math.min(
+              panel.availableCardHeight * 0.5,
+              panel.availableCardHeight - panel.verticalContentInset - chromeHeight))
 
             Item {
+              id: gridHeader
               width: parent.width
               height: Math.max(gridTitle.implicitHeight, gridSettingsButton.implicitHeight)
 
@@ -433,7 +442,10 @@ Panel {
             }
 
             Text {
-              anchors.horizontalCenter: parent.horizontalCenter
+              id: gridName
+              width: parent.width
+              horizontalAlignment: Text.AlignHCenter
+              elide: Text.ElideRight
               text: root.service ? root.service.name : ""
               color: Qt.darker(root.contentForeground, 1.35)
               font.family: root.contentFontFamily
@@ -441,8 +453,10 @@ Panel {
             }
 
             Text {
+              id: gridRemaining
               width: parent.width
               horizontalAlignment: Text.AlignHCenter
+              elide: Text.ElideRight
               text: root.service ? Life.remainingText(root.service.gridRemaining, root.service.gridUnit,
                 root.service.beyondScale, root.service.beyondDays) : ""
               color: root.service && root.service.beyondScale ? Color.accent : root.contentForeground
@@ -454,8 +468,7 @@ Panel {
             LifeGrid {
               id: panelLifeGrid
               width: parent.width
-              // Fill the panel width; only cap when the screen is too short.
-              height: Math.min(naturalHeight, Math.max(Style.space(310), panel.availableCardHeight * 0.55))
+              height: Math.min(naturalHeight, gridColumn.gridBudget)
               columns: root.service ? Life.gridColumns(root.service.gridUnit) : 0
               totalUnits: root.service ? root.service.gridTotal : 0
               elapsedUnits: root.service ? root.service.gridElapsed : 0
@@ -464,6 +477,7 @@ Panel {
             }
 
             LifeGridLegend {
+              id: gridLegend
               anchors.horizontalCenter: parent.horizontalCenter
               grid: panelLifeGrid
               foreground: root.contentForeground
@@ -471,11 +485,12 @@ Panel {
             }
 
             Text {
+              id: gridFooter
               width: parent.width
-              wrapMode: Text.WordWrap
               horizontalAlignment: Text.AlignHCenter
+              elide: Text.ElideRight
               text: root.service ? Life.livedText(root.service.gridElapsed, root.service.gridTotal,
-                root.service.gridUnit) + " · " + Life.gridRowText(root.service.gridUnit) : ""
+                root.service.gridUnit) : ""
               color: Qt.darker(root.contentForeground, 1.65)
               font.family: root.contentFontFamily
               font.pixelSize: Style.font.caption
